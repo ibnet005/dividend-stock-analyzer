@@ -30,7 +30,7 @@ REGIONAL_CRITERIA = {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 5.0,
         "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
-        "eps_increases_min": 5,
+        "eps_increases_min": 4,  # Realistic - even great companies have down years
         "consecutive_dividend_min": 10,
         "required_status": [],
         "description": "Practical criteria for US dividend stocks"
@@ -39,7 +39,7 @@ REGIONAL_CRITERIA = {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 50.0,
         "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
-        "eps_increases_min": 5,
+        "eps_increases_min": 4,  # Realistic - even great companies have down years
         "consecutive_dividend_min": 10,
         "required_status": [],
         "description": "Practical criteria for UK dividend stocks"
@@ -48,7 +48,7 @@ REGIONAL_CRITERIA = {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 10.0,
         "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
-        "eps_increases_min": 5,
+        "eps_increases_min": 4,  # Realistic - even great companies have down years
         "consecutive_dividend_min": 10,
         "required_status": [],
         "description": "Practical criteria for Canadian dividend stocks"
