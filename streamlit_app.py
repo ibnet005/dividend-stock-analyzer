@@ -29,7 +29,7 @@ REGIONAL_CRITERIA = {
     "USD": {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 5.0,
-        "institutional_holders_min": 80,
+        "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
         "eps_increases_min": 5,
         "consecutive_dividend_min": 10,
         "required_status": [],
@@ -38,7 +38,7 @@ REGIONAL_CRITERIA = {
     "GBP": {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 50.0,
-        "institutional_holders_min": 60,
+        "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
         "eps_increases_min": 5,
         "consecutive_dividend_min": 10,
         "required_status": [],
@@ -47,7 +47,7 @@ REGIONAL_CRITERIA = {
     "CAD": {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 10.0,
-        "institutional_holders_min": 50,
+        "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
         "eps_increases_min": 5,
         "consecutive_dividend_min": 10,
         "required_status": [],
@@ -63,9 +63,9 @@ def get_regional_criteria(currency: str, screening_mode: str = "Balanced") -> di
         return {
             "dividend_increases_min": max(base_criteria["dividend_increases_min"] - 2, 3),
             "shares_outstanding_min": base_criteria["shares_outstanding_min"] * 0.4,
-            "institutional_holders_min": max(base_criteria["institutional_holders_min"] - 30, 20),
-            "eps_increases_min": max(base_criteria["eps_increases_min"] - 2, 4),
-            "consecutive_dividend_min": max(base_criteria["consecutive_dividend_min"] - 15, 10),
+            "institutional_holders_min": max(base_criteria["institutional_holders_min"] - 2, 3),
+            "eps_increases_min": max(base_criteria["eps_increases_min"] - 2, 3),
+            "consecutive_dividend_min": max(base_criteria["consecutive_dividend_min"] - 5, 5),
             "required_status": [],
             "description": f"{base_criteria['description']} (Aggressive)"
         }
