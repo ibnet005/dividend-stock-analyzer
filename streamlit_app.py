@@ -557,78 +557,89 @@ def create_yield_chart(stock_data, analysis):
 
 def show_upgrade_cta():
     """Show upgrade call-to-action with pricing tiers"""
+    # Container with gradient background
     st.markdown("""
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: clamp(1.5rem, 4vw, 2rem); border-radius: 12px; color: white;
-                text-align: center; margin: 2rem 0;'>
-        <h2 style='margin: 0 0 0.5rem 0; font-size: clamp(1.5rem, 4vw, 2rem);'>
-            🚀 Upgrade to Desktop Version
-        </h2>
-        <p style='font-size: clamp(0.9rem, 2.5vw, 1rem); margin: 0 0 2rem 0; opacity: 0.9;'>
-            Choose the plan that's right for you
-        </p>
+                padding: 2rem; border-radius: 12px; margin: 2rem 0;'>
+    </div>
+    """, unsafe_allow_html=True)
 
-        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                    gap: 1.5rem; max-width: 900px; margin: 0 auto;'>
+    # Use container for white text on gradient
+    with st.container():
+        st.markdown("""
+        <div style='text-align: center; margin-top: -5rem; color: white;'>
+            <h2 style='font-size: 2rem; margin-bottom: 0.5rem;'>🚀 Upgrade to Desktop Version</h2>
+            <p style='font-size: 1rem; margin-bottom: 2rem; opacity: 0.9;'>Choose the plan that's right for you</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-            <!-- Basic Plan -->
-            <div style='background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-                        padding: 1.5rem; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);'>
-                <h3 style='margin: 0 0 0.5rem 0; font-size: 1.5rem;'>Desktop Basic</h3>
-                <div style='font-size: 2.5rem; font-weight: 700; margin: 1rem 0;'>
-                    $99<span style='font-size: 1rem; opacity: 0.8;'>/year</span>
+        # Create two columns for pricing tiers
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("""
+            <div style='background: white; padding: 2rem; border-radius: 12px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: 100%;'>
+                <h3 style='color: #667eea; font-size: 1.5rem; margin-top: 0;'>Desktop Basic</h3>
+                <div style='font-size: 2.5rem; font-weight: 700; color: #1f2937; margin: 1rem 0;'>
+                    $99<span style='font-size: 1rem; color: #6b7280;'>/year</span>
                 </div>
-                <ul style='text-align: left; padding-left: 1.5rem; margin: 1.5rem 0;
-                           font-size: 0.95rem; line-height: 1.8;'>
+                <hr style='border: none; border-top: 2px solid #e5e7eb; margin: 1.5rem 0;'>
+                <ul style='list-style: none; padding: 0; color: #374151; line-height: 2;'>
                     <li>✓ Unlimited analyses</li>
                     <li>✓ Quality screening</li>
                     <li>✓ Buy/Sell signals</li>
                     <li>✓ Basic charts</li>
                 </ul>
-                <a href='https://fluentboost.com/stock-analyzer-basic'
-                   style='display: inline-block; background: white; color: #667eea;
-                          padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none;
-                          font-weight: 600; margin-top: 1rem;'>
+                <a href='https://fluentboost.com/stock-analyzer-basic' target='_blank'
+                   style='display: block; background: #667eea; color: white; text-align: center;
+                          padding: 0.75rem; border-radius: 8px; text-decoration: none;
+                          font-weight: 600; margin-top: 1.5rem;'>
                     Get Basic →
                 </a>
             </div>
+            """, unsafe_allow_html=True)
 
-            <!-- Pro Plan -->
-            <div style='background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
-                        padding: 1.5rem; border-radius: 12px;
-                        border: 3px solid #fbbf24; position: relative;'>
-                <div style='position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+        with col2:
+            st.markdown("""
+            <div style='background: white; padding: 2rem; border-radius: 12px;
+                        box-shadow: 0 8px 16px rgba(0,0,0,0.2); border: 3px solid #fbbf24;
+                        position: relative; height: 100%;'>
+                <div style='position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
                             background: #fbbf24; color: #1f2937; padding: 0.25rem 1rem;
                             border-radius: 20px; font-size: 0.75rem; font-weight: 700;'>
                     MOST POPULAR
                 </div>
-                <h3 style='margin: 0 0 0.5rem 0; font-size: 1.5rem;'>Desktop Pro</h3>
-                <div style='font-size: 2.5rem; font-weight: 700; margin: 1rem 0;'>
-                    $299<span style='font-size: 1rem; opacity: 0.8;'>/year</span>
+                <h3 style='color: #764ba2; font-size: 1.5rem; margin-top: 0;'>Desktop Pro</h3>
+                <div style='font-size: 2.5rem; font-weight: 700; color: #1f2937; margin: 1rem 0;'>
+                    $299<span style='font-size: 1rem; color: #6b7280;'>/year</span>
                 </div>
-                <ul style='text-align: left; padding-left: 1.5rem; margin: 1.5rem 0;
-                           font-size: 0.95rem; line-height: 1.8;'>
-                    <li>✓ <strong>Everything in Basic</strong></li>
+                <hr style='border: none; border-top: 2px solid #e5e7eb; margin: 1.5rem 0;'>
+                <ul style='list-style: none; padding: 0; color: #374151; line-height: 2;'>
+                    <li><strong>✓ Everything in Basic</strong></li>
                     <li>✓ Watchlist manager</li>
-                    <li>✓ Email/SMS alerts</li>
                     <li>✓ Portfolio tracking</li>
                     <li>✓ Advanced charts</li>
                     <li>✓ PDF exports</li>
+                    <li>✓ Historical tracking</li>
+                    <li>✓ Bulk analysis</li>
                 </ul>
-                <a href='https://fluentboost.com/stock-analyzer-pro'
-                   style='display: inline-block; background: #fbbf24; color: #1f2937;
-                          padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none;
-                          font-weight: 700; margin-top: 1rem;'>
+                <a href='https://fluentboost.com/stock-analyzer-pro' target='_blank'
+                   style='display: block; background: #fbbf24; color: #1f2937; text-align: center;
+                          padding: 0.75rem; border-radius: 8px; text-decoration: none;
+                          font-weight: 700; margin-top: 1.5rem;'>
                     Get Pro →
                 </a>
             </div>
-        </div>
+            """, unsafe_allow_html=True)
 
-        <p style='margin: 2rem 0 0 0; font-size: clamp(0.85rem, 2vw, 0.9rem); opacity: 0.85;'>
+        st.markdown("""
+        <div style='text-align: center; color: white; margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.85;'>
             Annual subscription • Cancel anytime • 30-day money-back guarantee
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
 
 def main():
     # Header with better styling
