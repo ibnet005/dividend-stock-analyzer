@@ -556,26 +556,76 @@ def create_yield_chart(stock_data, analysis):
         return None
 
 def show_upgrade_cta():
-    """Show upgrade call-to-action"""
+    """Show upgrade call-to-action with pricing tiers"""
     st.markdown("""
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 padding: clamp(1.5rem, 4vw, 2rem); border-radius: 12px; color: white;
                 text-align: center; margin: 2rem 0;'>
-        <h2 style='margin: 0 0 1rem 0; font-size: clamp(1.5rem, 4vw, 2rem);'>
-            🚀 Want Unlimited Access?
+        <h2 style='margin: 0 0 0.5rem 0; font-size: clamp(1.5rem, 4vw, 2rem);'>
+            🚀 Upgrade to Desktop Version
         </h2>
-        <p style='font-size: clamp(1rem, 2.5vw, 1.1rem); margin: 0 0 1.5rem 0;'>
-            Upgrade to the Desktop Pro version for unlimited analyses, watchlists,
-            alerts, and advanced features!
+        <p style='font-size: clamp(0.9rem, 2.5vw, 1rem); margin: 0 0 2rem 0; opacity: 0.9;'>
+            Choose the plan that's right for you
         </p>
-        <a href='https://fluentboost.com/stock-analyzer-pro'
-           style='display: inline-block; background: white; color: #667eea;
-                  padding: 1rem 2rem; border-radius: 8px; text-decoration: none;
-                  font-weight: 600; font-size: clamp(1rem, 3vw, 1.1rem);'>
-            Get Desktop Pro - $149 →
-        </a>
-        <p style='margin: 1rem 0 0 0; font-size: clamp(0.85rem, 2vw, 0.9rem); opacity: 0.9;'>
-            One-time purchase • No subscription • Lifetime updates
+
+        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 1.5rem; max-width: 900px; margin: 0 auto;'>
+
+            <!-- Basic Plan -->
+            <div style='background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+                        padding: 1.5rem; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);'>
+                <h3 style='margin: 0 0 0.5rem 0; font-size: 1.5rem;'>Desktop Basic</h3>
+                <div style='font-size: 2.5rem; font-weight: 700; margin: 1rem 0;'>
+                    $99<span style='font-size: 1rem; opacity: 0.8;'>/year</span>
+                </div>
+                <ul style='text-align: left; padding-left: 1.5rem; margin: 1.5rem 0;
+                           font-size: 0.95rem; line-height: 1.8;'>
+                    <li>✓ Unlimited analyses</li>
+                    <li>✓ Quality screening</li>
+                    <li>✓ Buy/Sell signals</li>
+                    <li>✓ Basic charts</li>
+                </ul>
+                <a href='https://fluentboost.com/stock-analyzer-basic'
+                   style='display: inline-block; background: white; color: #667eea;
+                          padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none;
+                          font-weight: 600; margin-top: 1rem;'>
+                    Get Basic →
+                </a>
+            </div>
+
+            <!-- Pro Plan -->
+            <div style='background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+                        padding: 1.5rem; border-radius: 12px;
+                        border: 3px solid #fbbf24; position: relative;'>
+                <div style='position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+                            background: #fbbf24; color: #1f2937; padding: 0.25rem 1rem;
+                            border-radius: 20px; font-size: 0.75rem; font-weight: 700;'>
+                    MOST POPULAR
+                </div>
+                <h3 style='margin: 0 0 0.5rem 0; font-size: 1.5rem;'>Desktop Pro</h3>
+                <div style='font-size: 2.5rem; font-weight: 700; margin: 1rem 0;'>
+                    $299<span style='font-size: 1rem; opacity: 0.8;'>/year</span>
+                </div>
+                <ul style='text-align: left; padding-left: 1.5rem; margin: 1.5rem 0;
+                           font-size: 0.95rem; line-height: 1.8;'>
+                    <li>✓ <strong>Everything in Basic</strong></li>
+                    <li>✓ Watchlist manager</li>
+                    <li>✓ Email/SMS alerts</li>
+                    <li>✓ Portfolio tracking</li>
+                    <li>✓ Advanced charts</li>
+                    <li>✓ PDF exports</li>
+                </ul>
+                <a href='https://fluentboost.com/stock-analyzer-pro'
+                   style='display: inline-block; background: #fbbf24; color: #1f2937;
+                          padding: 0.75rem 1.5rem; border-radius: 8px; text-decoration: none;
+                          font-weight: 700; margin-top: 1rem;'>
+                    Get Pro →
+                </a>
+            </div>
+        </div>
+
+        <p style='margin: 2rem 0 0 0; font-size: clamp(0.85rem, 2vw, 0.9rem); opacity: 0.85;'>
+            Annual subscription • Cancel anytime • 30-day money-back guarantee
         </p>
     </div>
     """, unsafe_allow_html=True)
