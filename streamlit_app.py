@@ -641,6 +641,51 @@ def show_upgrade_cta():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+def show_value_proposition():
+    """Show permanent value proposition and benefits"""
+    st.markdown("### 💎 Why Use This Analyzer?")
+
+    # Benefits in columns
+    benefit_col1, benefit_col2, benefit_col3 = st.columns(3)
+
+    with benefit_col1:
+        st.markdown("""
+        <div style='background: #f0f9ff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3b82f6;'>
+            <h4 style='color: #1e40af; margin-top: 0;'>📈 Quality Screening</h4>
+            <p style='color: #374151; font-size: 0.9rem;'>
+                6-point quality assessment based on Weiss methodology: dividend growth,
+                EPS increases, institutional confidence, and consistency.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with benefit_col2:
+        st.markdown("""
+        <div style='background: #f0fdf4; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #059669;'>
+            <h4 style='color: #047857; margin-top: 0;'>🎯 Smart Signals</h4>
+            <p style='color: #374151; font-size: 0.9rem;'>
+                Get clear BUY, SELL, WATCH, or HOLD signals based on historical yield
+                analysis. Know exactly when to act.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with benefit_col3:
+        st.markdown("""
+        <div style='background: #fef3c7; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;'>
+            <h4 style='color: #d97706; margin-top: 0;'>📊 Visual Analysis</h4>
+            <p style='color: #374151; font-size: 0.9rem;'>
+                Interactive charts showing price history and yield comparisons.
+                See the full picture at a glance.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # Show pricing comparison
+    show_upgrade_cta()
+
 def main():
     # Header with better styling
     st.markdown("""
@@ -652,13 +697,18 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
+    # Show permanent value proposition and pricing
+    show_value_proposition()
+
+    st.markdown("---")
+    st.markdown("### 🔍 Try It Free - 5 Analyses Per Day")
+
     # Usage counter
     remaining = st.session_state.analyses_limit - st.session_state.analysis_count
     if remaining > 0:
         st.info(f"💡 **Free analyses remaining today:** {remaining}/{st.session_state.analyses_limit}")
     else:
         st.error("⚠️ **Daily limit reached!** Upgrade to Desktop Pro for unlimited access.")
-        show_upgrade_cta()
         return
 
     # Screening mode selector (moved to main area)
