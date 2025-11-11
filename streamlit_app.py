@@ -26,6 +26,7 @@ st.set_page_config(
 
 # Custom CSS for professional styling
 st.markdown("""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <style>
     /* Main theme colors */
     :root {
@@ -42,6 +43,18 @@ st.markdown("""
     /* Better typography */
     .stApp {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        max-width: 100%;
+        padding: 0 clamp(0.5rem, 2vw, 1rem);
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+        .stApp {
+            padding: 0 0.5rem;
+        }
+        div[data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+        }
     }
 
     /* Metric cards */
@@ -546,20 +559,22 @@ def show_upgrade_cta():
     """Show upgrade call-to-action"""
     st.markdown("""
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 2rem; border-radius: 12px; color: white; text-align: center;
-                margin: 2rem 0;'>
-        <h2 style='margin: 0 0 1rem 0;'>🚀 Want Unlimited Access?</h2>
-        <p style='font-size: 1.1rem; margin: 0 0 1.5rem 0;'>
+                padding: clamp(1.5rem, 4vw, 2rem); border-radius: 12px; color: white;
+                text-align: center; margin: 2rem 0;'>
+        <h2 style='margin: 0 0 1rem 0; font-size: clamp(1.5rem, 4vw, 2rem);'>
+            🚀 Want Unlimited Access?
+        </h2>
+        <p style='font-size: clamp(1rem, 2.5vw, 1.1rem); margin: 0 0 1.5rem 0;'>
             Upgrade to the Desktop Pro version for unlimited analyses, watchlists,
             alerts, and advanced features!
         </p>
         <a href='https://fluentboost.com/stock-analyzer-pro'
            style='display: inline-block; background: white; color: #667eea;
                   padding: 1rem 2rem; border-radius: 8px; text-decoration: none;
-                  font-weight: 600; font-size: 1.1rem;'>
-            Get Desktop Pro - $79 →
+                  font-weight: 600; font-size: clamp(1rem, 3vw, 1.1rem);'>
+            Get Desktop Pro - $149 →
         </a>
-        <p style='margin: 1rem 0 0 0; font-size: 0.9rem; opacity: 0.9;'>
+        <p style='margin: 1rem 0 0 0; font-size: clamp(0.85rem, 2vw, 0.9rem); opacity: 0.9;'>
             One-time purchase • No subscription • Lifetime updates
         </p>
     </div>
@@ -568,9 +583,9 @@ def show_upgrade_cta():
 def main():
     # Header with better styling
     st.markdown("""
-    <div style='text-align: center; padding: 2rem 0 1rem 0;'>
-        <h1 style='font-size: 3rem; margin: 0;'>📊 Dividend Stock Analyzer</h1>
-        <p style='font-size: 1.2rem; color: #6b7280; margin: 0.5rem 0 0 0;'>
+    <div style='text-align: center; padding: 0.5rem 0 1rem 0;'>
+        <h1 style='font-size: clamp(1.8rem, 5vw, 3rem); margin: 0;'>📊 Dividend Stock Analyzer</h1>
+        <p style='font-size: clamp(1rem, 3vw, 1.2rem); color: #6b7280; margin: 0.5rem 0 0 0;'>
             Professional quality screening using the Weiss methodology
         </p>
     </div>
