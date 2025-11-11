@@ -9,17 +9,91 @@ import requests
 import time
 import json
 import os
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
 from dataclasses import dataclass
 from typing import List, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Page configuration
 st.set_page_config(
-    page_title="Dividend Stock Analyzer",
+    page_title="Dividend Stock Analyzer | Professional Stock Analysis",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
+
+# Custom CSS for professional styling
+st.markdown("""
+<style>
+    /* Main theme colors */
+    :root {
+        --primary-color: #dc2626;
+        --success-color: #059669;
+        --warning-color: #d97706;
+        --danger-color: #dc2626;
+    }
+
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+
+    /* Better typography */
+    .stApp {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* Metric cards */
+    div[data-testid="metric-container"] {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        background-color: #dc2626;
+        color: white;
+        font-weight: 600;
+        border-radius: 6px;
+        padding: 0.5rem 2rem;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .stButton > button:hover {
+        background-color: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Input fields */
+    .stTextInput > div > div > input {
+        border-radius: 6px;
+        border: 2px solid #e5e7eb;
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .stTextInput > div > div > input:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    /* Success/Error messages */
+    .element-container div[data-baseweb="notification"] {
+        border-radius: 8px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Initialize session state
+if 'analysis_count' not in st.session_state:
+    st.session_state.analysis_count = 0
+if 'analyses_limit' not in st.session_state:
+    st.session_state.analyses_limit = 5
 
 # ============================================================================
 # REGIONAL CRITERIA & CONFIGURATION
@@ -386,48 +460,169 @@ def analyze_stock(stock_data, screening_mode="Balanced"):
 # STREAMLIT UI
 # ============================================================================
 
-def main():
-    # Header
-    st.title("📊 Dividend Stock Analyzer")
-    st.markdown("Quality dividend screening using the Weiss methodology")
+# ============================================================================
+# CHART FUNCTIONS
+# ============================================================================
 
-    # Sidebar
-    with st.sidebar:
-        st.header("Settings")
+def create_price_chart(ticker):
+    """Create interactive price history chart"""
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="1y")
 
-        screening_mode = st.radio(
-            "Screening Mode",
-            ["Balanced", "Aggressive"],
-            help="Balanced: Standard criteria | Aggressive: More lenient criteria"
+        if len(hist) == 0:
+            return None
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(
+            x=hist.index,
+            y=hist['Close'],
+            mode='lines',
+            name='Price',
+            line=dict(color='#dc2626', width=2),
+            fill='tozeroy',
+            fillcolor='rgba(220, 38, 38, 0.1)'
+        ))
+
+        fig.update_layout(
+            title="12-Month Price History",
+            xaxis_title="Date",
+            yaxis_title="Price ($)",
+            hovermode='x unified',
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            font=dict(family="Inter, sans-serif"),
+            margin=dict(l=0, r=0, t=40, b=0),
+            height=300
         )
 
-        st.markdown("---")
-        st.markdown("### About")
-        st.markdown("""
-        This tool analyzes dividend stocks using six quality criteria:
-        1. Dividend Increases (12y)
-        2. Shares Outstanding
-        3. Institutional Holders
-        4. EPS Increases (12y)
-        5. Consecutive Dividend Years
-        6. Dividend Status
-        """)
+        fig.update_xaxes(showgrid=True, gridcolor='#f3f4f6')
+        fig.update_yaxes(showgrid=True, gridcolor='#f3f4f6')
 
-    # Main content
-    col1, col2 = st.columns([1, 2])
+        return fig
+    except:
+        return None
 
-    with col1:
-        st.subheader("Stock Input")
+def create_yield_chart(stock_data, analysis):
+    """Create yield comparison chart"""
+    try:
+        yields = {
+            'Current Yield': analysis['current_yield'],
+            'Buy Target': analysis['buy_yield'],
+            'Sell Target': analysis['sell_yield']
+        }
+
+        colors = ['#3b82f6', '#059669', '#dc2626']
+
+        fig = go.Figure(data=[
+            go.Bar(
+                x=list(yields.keys()),
+                y=list(yields.values()),
+                marker_color=colors,
+                text=[f"{v:.2f}%" for v in yields.values()],
+                textposition='auto',
+            )
+        ])
+
+        fig.update_layout(
+            title="Yield Analysis",
+            yaxis_title="Yield (%)",
+            showlegend=False,
+            plot_bgcolor='white',
+            paper_bgcolor='white',
+            font=dict(family="Inter, sans-serif"),
+            margin=dict(l=0, r=0, t=40, b=0),
+            height=300
+        )
+
+        fig.update_xaxes(showgrid=False)
+        fig.update_yaxes(showgrid=True, gridcolor='#f3f4f6')
+
+        return fig
+    except:
+        return None
+
+def show_upgrade_cta():
+    """Show upgrade call-to-action"""
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 2rem; border-radius: 12px; color: white; text-align: center;
+                margin: 2rem 0;'>
+        <h2 style='margin: 0 0 1rem 0;'>🚀 Want Unlimited Access?</h2>
+        <p style='font-size: 1.1rem; margin: 0 0 1.5rem 0;'>
+            Upgrade to the Desktop Pro version for unlimited analyses, watchlists,
+            alerts, and advanced features!
+        </p>
+        <a href='https://fluentboost.com/stock-analyzer-pro'
+           style='display: inline-block; background: white; color: #667eea;
+                  padding: 1rem 2rem; border-radius: 8px; text-decoration: none;
+                  font-weight: 600; font-size: 1.1rem;'>
+            Get Desktop Pro - $79 →
+        </a>
+        <p style='margin: 1rem 0 0 0; font-size: 0.9rem; opacity: 0.9;'>
+            One-time purchase • No subscription • Lifetime updates
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def main():
+    # Header with better styling
+    st.markdown("""
+    <div style='text-align: center; padding: 2rem 0 1rem 0;'>
+        <h1 style='font-size: 3rem; margin: 0;'>📊 Dividend Stock Analyzer</h1>
+        <p style='font-size: 1.2rem; color: #6b7280; margin: 0.5rem 0 0 0;'>
+            Professional quality screening using the Weiss methodology
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Usage counter
+    remaining = st.session_state.analyses_limit - st.session_state.analysis_count
+    if remaining > 0:
+        st.info(f"💡 **Free analyses remaining today:** {remaining}/{st.session_state.analyses_limit}")
+    else:
+        st.error("⚠️ **Daily limit reached!** Upgrade to Desktop Pro for unlimited access.")
+        show_upgrade_cta()
+        return
+
+    # Screening mode selector (moved to main area)
+    col_mode1, col_mode2, col_mode3 = st.columns([1, 1, 2])
+    with col_mode1:
+        screening_mode = st.selectbox(
+            "Screening Mode",
+            ["Balanced", "Aggressive"],
+            help="Balanced: Standard criteria | Aggressive: More lenient"
+        )
+
+    st.markdown("---")
+
+    # Main input area
+    st.markdown("### 🔍 Analyze a Stock")
+    input_col1, input_col2 = st.columns([2, 1])
+
+    with input_col1:
         ticker = st.text_input(
-            "Enter Ticker Symbol",
-            placeholder="e.g., AAPL, JNJ, KO",
-            help="Enter a stock ticker symbol"
+            "Enter Stock Ticker",
+            placeholder="e.g., KO, JNJ, PG",
+            help="Enter any US stock ticker symbol",
+            label_visibility="collapsed"
         ).upper()
 
-        analyze_button = st.button("🔍 Analyze Stock", type="primary", use_container_width=True)
+    with input_col2:
+        analyze_button = st.button("📊 Analyze", type="primary", use_container_width=True)
 
-    with col2:
-        st.subheader("Analysis Results")
+    # Results area
+    if analyze_button and ticker:
+        if remaining <= 0:
+            st.error("Daily limit reached! Upgrade to continue.")
+            show_upgrade_cta()
+            return
+
+        # Increment counter
+        st.session_state.analysis_count += 1
+
+        st.markdown("---")
+        st.markdown("## Analysis Results")
 
         if analyze_button and ticker:
             with st.spinner(f"Fetching data for {ticker}..."):
@@ -496,6 +691,22 @@ def main():
                     with val_col3:
                         st.metric("Sell Yield Target", f"{analysis['sell_yield']:.2f}%")
 
+                    # Charts
+                    st.markdown("### 📈 Visual Analysis")
+                    chart_col1, chart_col2 = st.columns(2)
+
+                    with chart_col1:
+                        price_chart = create_price_chart(ticker)
+                        if price_chart:
+                            st.plotly_chart(price_chart, use_container_width=True)
+
+                    with chart_col2:
+                        yield_chart = create_yield_chart(stock_data, analysis)
+                        if yield_chart:
+                            st.plotly_chart(yield_chart, use_container_width=True)
+
+                    st.markdown("---")
+
                     # Recommendation
                     if analysis['recommendation'] == "BUY":
                         st.success(f"### 🟢 {analysis['recommendation']}")
@@ -530,8 +741,42 @@ def main():
                 advisor before investing.
                 """)
 
+                # Show upgrade CTA after analysis
+                st.markdown("---")
+                show_upgrade_cta()
+
         elif not ticker and analyze_button:
             st.warning("Please enter a ticker symbol")
+
+    # Footer with feature comparison
+    st.markdown("---")
+    st.markdown("""
+    <div style='text-align: center; padding: 2rem 0; color: #6b7280;'>
+        <h3>Why Upgrade to Desktop Pro?</h3>
+        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;'>
+            <div>
+                <div style='font-size: 2rem;'>📊</div>
+                <strong>Unlimited Analyses</strong>
+                <p style='font-size: 0.9rem;'>No daily limits</p>
+            </div>
+            <div>
+                <div style='font-size: 2rem;'>📝</div>
+                <strong>Watchlist Manager</strong>
+                <p style='font-size: 0.9rem;'>Track multiple stocks</p>
+            </div>
+            <div>
+                <div style='font-size: 2rem;'>📈</div>
+                <strong>Advanced Charts</strong>
+                <p style='font-size: 0.9rem;'>Historical data visualization</p>
+            </div>
+            <div>
+                <div style='font-size: 2rem;'>📧</div>
+                <strong>Email Alerts</strong>
+                <p style='font-size: 0.9rem;'>Get notified of buy signals</p>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
