@@ -559,9 +559,9 @@ def show_upgrade_cta():
     """Show upgrade call-to-action with pricing tiers"""
     st.markdown("""
     <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                padding: 2rem; border-radius: 12px; margin: 2rem 0; color: white;'>
-        <div style='text-align: center; margin-bottom: 2rem;'>
-            <h2 style='font-size: 2rem; margin: 0 0 0.5rem 0; color: white;'>🚀 Upgrade to Desktop Version</h2>
+                padding: 1.5rem 2rem; border-radius: 12px; margin: 2rem 0; color: white;'>
+        <div style='text-align: center;'>
+            <h2 style='font-size: 2rem; margin: 0 0 0.25rem 0; color: white;'>🚀 Upgrade to Desktop Version</h2>
             <p style='font-size: 1rem; margin: 0; opacity: 0.9;'>Choose the plan that's right for you</p>
         </div>
     </div>
@@ -573,7 +573,7 @@ def show_upgrade_cta():
     with col1:
         st.markdown("""
         <div style='background: white; padding: 2rem; border-radius: 12px;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: 100%; margin-top: -3rem;'>
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1); height: 100%; margin-top: -1.5rem;'>
             <h3 style='color: #667eea; font-size: 1.5rem; margin-top: 0;'>Desktop Basic</h3>
             <div style='font-size: 2.5rem; font-weight: 700; color: #1f2937; margin: 1rem 0;'>
                 $99<span style='font-size: 1rem; color: #6b7280;'>/year</span>
@@ -598,7 +598,7 @@ def show_upgrade_cta():
         st.markdown("""
         <div style='background: white; padding: 2rem; border-radius: 12px;
                     box-shadow: 0 8px 16px rgba(0,0,0,0.2); border: 3px solid #fbbf24;
-                    position: relative; height: 100%; margin-top: -3rem;'>
+                    position: relative; height: 100%; margin-top: -1.5rem;'>
             <div style='position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
                         background: #fbbf24; color: #1f2937; padding: 0.25rem 1rem;
                         border-radius: 20px; font-size: 0.75rem; font-weight: 700;'>
@@ -629,7 +629,7 @@ def show_upgrade_cta():
 
     st.markdown("""
     <div style='text-align: center; margin-top: 1rem; font-size: 0.9rem; opacity: 0.7;'>
-        Annual subscription • Cancel anytime • 30-day money-back guarantee
+        Annual subscription • Cancel anytime
     </div>
     """, unsafe_allow_html=True)
 
