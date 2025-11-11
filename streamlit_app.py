@@ -695,15 +695,37 @@ def main():
     show_value_proposition()
 
     st.markdown("---")
-    st.markdown("### 🔍 Try It Free - 5 Analyses Per Day")
 
-    # Usage counter
+    # Usage counter with prominent display
     remaining = st.session_state.analyses_limit - st.session_state.analysis_count
+
     if remaining > 0:
-        st.info(f"💡 **Free analyses remaining today:** {remaining}/{st.session_state.analyses_limit}")
+        st.markdown(f"""
+        <div style='background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    padding: 1.5rem; border-radius: 12px; text-align: center; color: white; margin: 1rem 0;'>
+            <h3 style='margin: 0 0 0.5rem 0; font-size: 1.5rem; color: white;'>🎁 Free Trial Active</h3>
+            <p style='margin: 0; font-size: 1.2rem; font-weight: 600;'>
+                You have <span style='font-size: 2rem; font-weight: 700;'>{remaining}</span> free analyses remaining today
+            </p>
+            <p style='margin: 0.5rem 0 0 0; font-size: 0.9rem; opacity: 0.9;'>
+                Resets daily • Upgrade for unlimited analyses
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.error("⚠️ **Daily limit reached!** Upgrade to Desktop Pro for unlimited access.")
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                    padding: 1.5rem; border-radius: 12px; text-align: center; color: white; margin: 1rem 0;'>
+            <h3 style='margin: 0 0 0.5rem 0; font-size: 1.5rem; color: white;'>⚠️ Daily Limit Reached</h3>
+            <p style='margin: 0; font-size: 1.1rem;'>
+                You've used all 5 free analyses today. Come back tomorrow or upgrade now!
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        show_upgrade_cta()
         return
+
+    st.markdown("### 🔍 Analyze a Stock")
 
     # Screening mode selector (moved to main area)
     col_mode1, col_mode2, col_mode3 = st.columns([1, 1, 2])
