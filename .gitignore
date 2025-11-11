@@ -23,8 +23,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# Streamlit
-.streamlit/
+# Streamlit (allow config.toml but ignore secrets and cache)
+.streamlit/secrets.toml
+.streamlit/cache/
 
 # Cache files
 eps_cache.json
