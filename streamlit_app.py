@@ -688,11 +688,6 @@ def main():
     </div>
     """, unsafe_allow_html=True)
 
-    # Show permanent value proposition and pricing
-    show_value_proposition()
-
-    st.markdown("---")
-
     # Usage counter with prominent display
     remaining = st.session_state.analyses_limit - st.session_state.analysis_count
 
@@ -887,35 +882,6 @@ def main():
         elif not ticker and analyze_button:
             st.warning("Please enter a ticker symbol")
 
-    # Footer with feature comparison
-    st.markdown("---")
-    st.markdown("""
-    <div style='text-align: center; padding: 2rem 0; color: #6b7280;'>
-        <h3>Why Upgrade to Desktop Pro?</h3>
-        <div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;'>
-            <div>
-                <div style='font-size: 2rem;'>📊</div>
-                <strong>Unlimited Analyses</strong>
-                <p style='font-size: 0.9rem;'>No daily limits</p>
-            </div>
-            <div>
-                <div style='font-size: 2rem;'>📝</div>
-                <strong>Watchlist Manager</strong>
-                <p style='font-size: 0.9rem;'>Track multiple stocks</p>
-            </div>
-            <div>
-                <div style='font-size: 2rem;'>📈</div>
-                <strong>Advanced Charts</strong>
-                <p style='font-size: 0.9rem;'>Historical data visualization</p>
-            </div>
-            <div>
-                <div style='font-size: 2rem;'>📧</div>
-                <strong>Email Alerts</strong>
-                <p style='font-size: 0.9rem;'>Get notified of buy signals</p>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
