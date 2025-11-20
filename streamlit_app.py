@@ -677,9 +677,6 @@ def show_value_proposition():
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Show pricing comparison
-    show_upgrade_cta()
-
 def main():
     # Header with better styling
     st.markdown("""
