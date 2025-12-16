@@ -419,12 +419,50 @@ def fetch_eps_increases_multi_source(ticker, stock=None):
 # STOCK DATA FETCHING
 # ============================================================================
 
+def fetch_yfinance_with_retry(ticker, max_retries=3):
+    """Fetch yfinance data with retry logic for rate limiting"""
+    for attempt in range(max_retries):
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+
+            # Check if we got valid data (empty info often means rate limited)
+            if info and len(info) > 1:
+                return stock, info, None
+            else:
+                # Might be rate limited, wait and retry
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 2  # 2, 4, 6 seconds
+                    time.sleep(wait_time)
+
+        except Exception as e:
+            error_msg = str(e).lower()
+            if 'rate' in error_msg or 'too many' in error_msg or '429' in error_msg:
+                if attempt < max_retries - 1:
+                    wait_time = (attempt + 1) * 3  # 3, 6, 9 seconds for rate limit errors
+                    time.sleep(wait_time)
+                else:
+                    return None, None, f"Rate limited - please try again in a few minutes"
+            else:
+                return None, None, str(e)
+
+    return None, None, "Could not fetch data after retries"
+
+
 @st.cache_data(ttl=3600)
 def fetch_stock_data(ticker):
-    """Fetch stock data from Yahoo Finance"""
+    """Fetch stock data from Yahoo Finance with rate limit handling"""
     try:
-        stock = yf.Ticker(ticker)
-        info = stock.info
+        # Use retry logic for yfinance
+        stock, info, error = fetch_yfinance_with_retry(ticker)
+
+        if error:
+            st.warning(f"⏳ {ticker}: {error}")
+            return None
+
+        if not info:
+            st.error(f"Could not fetch data for {ticker}")
+            return None
 
         # Basic info
         current_price = info.get('currentPrice', info.get('regularMarketPrice', 0))
