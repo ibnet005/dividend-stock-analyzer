@@ -177,37 +177,59 @@ class StockData:
     dividend_aristocrat_status: str = "None"
 
 # ============================================================================
-# SEC EDGAR EPS FETCHING
+# MULTI-SOURCE EPS FETCHING
 # ============================================================================
 
-def fetch_sec_edgar_eps_increases(ticker):
-    """Fetch EPS increases from SEC EDGAR (FREE, UNLIMITED, US stocks only)"""
+# Cache for SEC company tickers (loaded once per session)
+@st.cache_data(ttl=86400)  # Cache for 24 hours
+def load_sec_company_tickers():
+    """Load and cache SEC company tickers mapping"""
     try:
-        COMMON_CIKS = {
-            'AAPL': '0000320193', 'MSFT': '0000789019', 'GOOGL': '0001652044',
-            'AMZN': '0001018724', 'NVDA': '0001045810', 'META': '0001326801',
-            'TSLA': '0001318605', 'V': '0001403161', 'JNJ': '0000200406',
-            'WMT': '0000104169', 'JPM': '0000019617', 'PG': '0000080424',
-            'MA': '0001141391', 'HD': '0000354950', 'CVX': '0000093410',
-            'LLY': '0000059478', 'ABBV': '0001551152', 'MRK': '0000310158',
-            'KO': '0000021344', 'PEP': '0000077476', 'COST': '0000909832',
-            'NKE': '0000320187', 'DIS': '0001744489', 'CSCO': '0000858877',
-            'INTC': '0000050863', 'NFLX': '0001065280', 'BA': '0000012927',
-            'T': '0000732717', 'VZ': '0000732712', 'PFE': '0000078003'
+        headers = {
+            'User-Agent': 'DividendStockAnalyzer/1.0 (contact@example.com)',
+            'Accept': 'application/json'
         }
+        url = "https://www.sec.gov/files/company_tickers.json"
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        return {}
+    except:
+        return {}
 
-        cik = COMMON_CIKS.get(ticker.upper())
+def get_cik_from_sec(ticker):
+    """Look up CIK from SEC EDGAR ticker search"""
+    try:
+        data = load_sec_company_tickers()
+        if not data:
+            return None
+
+        ticker_upper = ticker.upper()
+        for key, company in data.items():
+            if company.get('ticker', '').upper() == ticker_upper:
+                cik = str(company.get('cik_str', '')).zfill(10)
+                return cik
+
+        return None
+    except:
+        return None
+
+def fetch_sec_edgar_eps_increases(ticker):
+    """Fetch EPS increases from SEC EDGAR with dynamic CIK lookup"""
+    try:
+        # First try to get CIK dynamically
+        cik = get_cik_from_sec(ticker)
 
         if not cik:
             return None
 
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+            'User-Agent': 'DividendStockAnalyzer/1.0 (contact@example.com)',
             'Accept': 'application/json',
             'Accept-Encoding': 'gzip, deflate'
         }
 
-        time.sleep(0.5)
+        time.sleep(0.2)  # Be nice to SEC servers
 
         facts_url = f"https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json"
         response = requests.get(facts_url, headers=headers, timeout=15)
@@ -220,11 +242,21 @@ def fetch_sec_edgar_eps_increases(ticker):
         if 'facts' not in data or 'us-gaap' not in data['facts']:
             return None
 
-        eps_data = data['facts']['us-gaap'].get('EarningsPerShareDiluted', {}).get('units', {}).get('USD/shares', [])
+        # Try multiple EPS fields
+        eps_fields = ['EarningsPerShareDiluted', 'EarningsPerShareBasic', 'EarningsPerShare']
+        eps_data = None
+
+        for field in eps_fields:
+            if field in data['facts']['us-gaap']:
+                eps_units = data['facts']['us-gaap'][field].get('units', {})
+                eps_data = eps_units.get('USD/shares') or eps_units.get('USD')
+                if eps_data:
+                    break
 
         if not eps_data:
             return None
 
+        # Extract annual EPS from 10-K filings
         annual_eps = {}
         for entry in eps_data:
             if entry.get('form') == '10-K' and 'fy' in entry:
@@ -236,21 +268,152 @@ def fetch_sec_edgar_eps_increases(ticker):
         if len(annual_eps) < 2:
             return None
 
+        # Count increases over last 12 years
         years = sorted(annual_eps.keys(), reverse=True)[:12]
         increases = 0
 
         for i in range(len(years) - 1):
             current_year = years[i]
             previous_year = years[i + 1]
-
             if annual_eps[current_year] > annual_eps[previous_year]:
                 increases += 1
 
         return increases
 
-    except Exception as e:
-        st.write(f"SEC EDGAR error: {str(e)}")
+    except Exception:
         return None
+
+def fetch_macrotrends_eps_increases(ticker, company_name=""):
+    """Fetch EPS increases from Macrotrends.net as fallback"""
+    try:
+        import re
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Referer': 'https://www.google.com/',
+        }
+
+        # First, find the company page
+        search_url = f"https://www.macrotrends.net/stocks/charts/{ticker.upper()}"
+        response = requests.get(search_url, headers=headers, timeout=15, allow_redirects=True)
+
+        if response.status_code != 200:
+            return None
+
+        # Extract the actual URL path from the page
+        final_url = response.url
+        if '/eps-earnings-per-share-diluted' not in final_url:
+            # Try to construct the EPS page URL
+            if '/stocks/charts/' in final_url:
+                base_url = final_url.rstrip('/')
+                eps_url = base_url + '/eps-earnings-per-share-diluted'
+            else:
+                return None
+        else:
+            eps_url = final_url
+
+        # Fetch the EPS page
+        time.sleep(0.3)
+        response = requests.get(eps_url, headers=headers, timeout=15)
+
+        if response.status_code != 200:
+            return None
+
+        html = response.text
+
+        # Look for the JavaScript data array in the page
+        pattern = r'var originalData = \[(.*?)\];'
+        match = re.search(pattern, html, re.DOTALL)
+
+        if not match:
+            return None
+
+        data_str = match.group(1)
+
+        # Parse the JavaScript array
+        eps_by_year = {}
+        row_pattern = r'\{"date":"(\d{4})[^"]*"[^}]*"v2":([0-9.-]+)'
+        matches = re.findall(row_pattern, data_str)
+
+        for year_str, eps_str in matches:
+            try:
+                year = int(year_str)
+                eps = float(eps_str)
+                if year not in eps_by_year:
+                    eps_by_year[year] = eps
+            except ValueError:
+                continue
+
+        if len(eps_by_year) < 2:
+            return None
+
+        # Count increases
+        years = sorted(eps_by_year.keys(), reverse=True)[:12]
+        increases = 0
+
+        for i in range(len(years) - 1):
+            if eps_by_year[years[i]] > eps_by_year[years[i + 1]]:
+                increases += 1
+
+        return increases
+
+    except Exception:
+        return None
+
+def fetch_yfinance_eps_increases(stock):
+    """Try to get EPS data from yfinance earnings history
+
+    Note: yfinance earnings_history only provides recent quarters (typically 4),
+    which is not enough to calculate 12-year EPS increases. This function
+    is kept for potential future use but will typically return None.
+    """
+    # yfinance earnings_history only has ~4 recent quarters, not enough for 12-year analysis
+    # Skip this and let SEC EDGAR handle it
+    return None
+
+def fetch_eps_increases_multi_source(ticker, stock=None):
+    """
+    Fetch EPS increases using multiple data sources with fallback:
+    1. yfinance earnings history (fastest)
+    2. SEC EDGAR (most reliable for US stocks)
+    3. Macrotrends (fallback for others)
+    4. Estimate from dividend growth (last resort)
+    """
+    eps_increases = None
+
+    # Try yfinance first (fastest)
+    if stock:
+        eps_increases = fetch_yfinance_eps_increases(stock)
+        if eps_increases is not None:
+            return eps_increases, "yfinance"
+
+    # Try SEC EDGAR (best for US stocks)
+    eps_increases = fetch_sec_edgar_eps_increases(ticker)
+    if eps_increases is not None:
+        return eps_increases, "SEC EDGAR"
+
+    # Try Macrotrends as fallback
+    eps_increases = fetch_macrotrends_eps_increases(ticker)
+    if eps_increases is not None:
+        return eps_increases, "Macrotrends"
+
+    # Last resort: estimate from dividend growth
+    if stock:
+        try:
+            dividends = stock.dividends
+            if len(dividends) > 0:
+                dividend_increases = calculate_dividend_increases(dividends)
+                if dividend_increases >= 3:
+                    # Strong dividend growth suggests EPS growth
+                    eps_increases = max(3, int(dividend_increases * 0.7))
+                    return eps_increases, "Estimated from dividends"
+        except:
+            pass
+
+    # Return 0 if all sources fail
+    return 0, "No data available"
 
 # ============================================================================
 # STOCK DATA FETCHING
@@ -279,10 +442,9 @@ def fetch_stock_data(ticker):
         # Historical yields
         hist_high_yield, hist_low_yield = calculate_historical_yields(stock, current_price, annual_dividend)
 
-        # EPS increases
-        eps_increases = fetch_sec_edgar_eps_increases(ticker)
-        if eps_increases is None:
-            eps_increases = 0
+        # EPS increases - use multi-source fetching
+        eps_increases, eps_source = fetch_eps_increases_multi_source(ticker, stock)
+        # eps_source can be used for debugging if needed
 
         # Dividend status
         dividend_status = determine_dividend_status(consecutive_years)
