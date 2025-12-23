@@ -785,7 +785,7 @@ def show_upgrade_cta():
                 <li>✓ Buy/Sell signals</li>
                 <li>✓ Basic charts</li>
             </ul>
-            <a href='https://fluentboost.com/stock-analyzer-basic' target='_blank'
+            <a href='https://buy.stripe.com/3cI6oGaeCb8YcHB4RE8IU00' target='_blank'
                style='display: block; background: #667eea; color: white; text-align: center;
                       padding: 0.75rem; border-radius: 8px; text-decoration: none;
                       font-weight: 600; margin-top: 1.5rem;'>
@@ -818,7 +818,7 @@ def show_upgrade_cta():
                 <li>✓ Historical tracking</li>
                 <li>✓ Bulk analysis</li>
             </ul>
-            <a href='https://fluentboost.com/stock-analyzer-pro' target='_blank'
+            <a href='https://buy.stripe.com/00wbJ072qdh66jdgAm8IU01' target='_blank'
                style='display: block; background: #fbbf24; color: #1f2937; text-align: center;
                       padding: 0.75rem; border-radius: 8px; text-decoration: none;
                       font-weight: 700; margin-top: 1.5rem;'>
