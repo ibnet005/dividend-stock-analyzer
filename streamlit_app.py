@@ -107,6 +107,79 @@ if 'analysis_count' not in st.session_state:
     st.session_state.analysis_count = 0
 if 'analyses_limit' not in st.session_state:
     st.session_state.analyses_limit = 5
+if 'user_email' not in st.session_state:
+    st.session_state.user_email = None
+if 'user_name' not in st.session_state:
+    st.session_state.user_name = None
+if 'user_sig' not in st.session_state:
+    st.session_state.user_sig = None
+if 'validated' not in st.session_state:
+    st.session_state.validated = False
+
+# Edge Function URLs
+VALIDATE_ACCESS_URL = "https://zcikjmujopxzpnwylrvk.supabase.co/functions/v1/validate-access"
+TRACK_ANALYSIS_URL = "https://zcikjmujopxzpnwylrvk.supabase.co/functions/v1/track-analysis"
+
+def validate_user_access():
+    """Validate user from URL parameters and get remaining analyses count"""
+    params = st.query_params
+    email = params.get("email", "")
+    name = params.get("name", "")
+    sig = params.get("sig", "")
+
+    if not email or not sig:
+        return False, 0, ""
+
+    try:
+        response = requests.post(
+            VALIDATE_ACCESS_URL,
+            json={"email": email, "name": name, "sig": sig},
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("valid"):
+                st.session_state.user_email = email
+                st.session_state.user_name = name or email.split("@")[0]
+                st.session_state.user_sig = sig
+                st.session_state.validated = True
+                remaining = data.get("remaining", 5)
+                st.session_state.analysis_count = 5 - remaining
+                return True, remaining, name or email.split("@")[0]
+    except Exception as e:
+        pass
+
+    return False, 0, ""
+
+def track_user_analysis(ticker: str) -> tuple:
+    """Track an analysis and return (allowed, remaining)"""
+    if not st.session_state.validated:
+        return True, 5 - st.session_state.analysis_count  # Fallback for non-validated users
+
+    try:
+        response = requests.post(
+            TRACK_ANALYSIS_URL,
+            json={
+                "email": st.session_state.user_email,
+                "name": st.session_state.user_name,
+                "sig": st.session_state.user_sig,
+                "ticker": ticker
+            },
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("allowed", False), data.get("remaining", 0)
+    except Exception as e:
+        pass
+
+    return True, 5 - st.session_state.analysis_count  # Fallback on error
+
+# Validate user on page load (only once per session)
+if not st.session_state.validated:
+    is_valid, remaining, user_name = validate_user_access()
+    if is_valid:
+        st.session_state.validated = True
 
 # ============================================================================
 # REGIONAL CRITERIA & CONFIGURATION
@@ -947,12 +1020,15 @@ def main():
 
     # Results area
     if analyze_button and ticker:
-        if remaining <= 0:
+        # Track usage via API (persists across sessions)
+        allowed, new_remaining = track_user_analysis(ticker)
+
+        if not allowed or remaining <= 0:
             st.error("Daily limit reached! Upgrade to continue.")
             show_upgrade_cta()
             return
 
-        # Increment counter
+        # Update local counter
         st.session_state.analysis_count += 1
 
         st.markdown("---")
