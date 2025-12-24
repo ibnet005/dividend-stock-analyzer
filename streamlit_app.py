@@ -357,26 +357,43 @@ def fetch_sec_edgar_eps_increases(ticker):
         if not eps_data:
             return None
 
-        # Extract annual EPS from 10-K filings
-        annual_eps = {}
-        for entry in eps_data:
-            if entry.get('form') == '10-K' and 'fy' in entry:
-                year = int(entry['fy'])
-                val = entry.get('val', 0)
-                if year not in annual_eps or abs(val) > abs(annual_eps[year]):
-                    annual_eps[year] = val
+        # Extract annual EPS from 10-K filings (matching Pro version methodology)
+        from datetime import datetime
+        current_year = datetime.now().year
 
-        if len(annual_eps) < 2:
+        eps_by_year = {}
+        for entry in eps_data:
+            if entry.get('form') != '10-K':
+                continue
+
+            end_date = entry.get('end', '')
+            if not end_date:
+                continue
+
+            year = int(end_date[:4])
+
+            # Only consider last 13 years
+            if year >= current_year - 13:
+                # Keep the latest filing for each year (based on filed date)
+                if year not in eps_by_year or entry.get('filed', '') > eps_by_year[year].get('filed', ''):
+                    eps_by_year[year] = entry
+
+        if len(eps_by_year) < 2:
             return None
 
-        # Count increases over last 12 years
-        years = sorted(annual_eps.keys(), reverse=True)[:12]
+        # Sort by year chronologically and count increases
+        sorted_years = sorted(eps_by_year.keys())
         increases = 0
 
-        for i in range(len(years) - 1):
-            current_year = years[i]
-            previous_year = years[i + 1]
-            if annual_eps[current_year] > annual_eps[previous_year]:
+        for i in range(1, len(sorted_years)):
+            prev_year = sorted_years[i-1]
+            curr_year = sorted_years[i]
+
+            prev_eps = eps_by_year[prev_year].get('val', 0)
+            curr_eps = eps_by_year[curr_year].get('val', 0)
+
+            # Count as increase if current > previous
+            if curr_eps > prev_eps:
                 increases += 1
 
         return increases
