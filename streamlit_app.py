@@ -189,8 +189,8 @@ REGIONAL_CRITERIA = {
     "USD": {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 5.0,
-        "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
-        "eps_increases_min": 4,  # Realistic - even great companies have down years
+        "institutional_holders_min": 80,
+        "eps_increases_min": 5,
         "consecutive_dividend_min": 10,
         "required_status": [],
         "description": "Practical criteria for US dividend stocks"
@@ -198,8 +198,8 @@ REGIONAL_CRITERIA = {
     "GBP": {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 50.0,
-        "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
-        "eps_increases_min": 4,  # Realistic - even great companies have down years
+        "institutional_holders_min": 60,
+        "eps_increases_min": 5,
         "consecutive_dividend_min": 10,
         "required_status": [],
         "description": "Practical criteria for UK dividend stocks"
@@ -207,11 +207,38 @@ REGIONAL_CRITERIA = {
     "CAD": {
         "dividend_increases_min": 5,
         "shares_outstanding_min": 10.0,
-        "institutional_holders_min": 5,  # Yahoo Finance only returns top 10 holders
-        "eps_increases_min": 4,  # Realistic - even great companies have down years
+        "institutional_holders_min": 50,
+        "eps_increases_min": 5,
         "consecutive_dividend_min": 10,
         "required_status": [],
         "description": "Practical criteria for Canadian dividend stocks"
+    },
+    "EUR": {
+        "dividend_increases_min": 4,
+        "shares_outstanding_min": 20.0,
+        "institutional_holders_min": 40,
+        "eps_increases_min": 3,
+        "consecutive_dividend_min": 8,
+        "required_status": [],
+        "description": "Practical criteria for European dividend stocks (relaxed for IFRS accounting)"
+    },
+    "JPY": {
+        "dividend_increases_min": 4,
+        "shares_outstanding_min": 100.0,
+        "institutional_holders_min": 30,
+        "eps_increases_min": 3,
+        "consecutive_dividend_min": 8,
+        "required_status": [],
+        "description": "Practical criteria for Japanese dividend stocks (relaxed EPS requirements)"
+    },
+    "AUD": {
+        "dividend_increases_min": 5,
+        "shares_outstanding_min": 50.0,
+        "institutional_holders_min": 50,
+        "eps_increases_min": 5,
+        "consecutive_dividend_min": 10,
+        "required_status": [],
+        "description": "Practical criteria for Australian dividend stocks"
     }
 }
 
@@ -223,9 +250,9 @@ def get_regional_criteria(currency: str, screening_mode: str = "Balanced") -> di
         return {
             "dividend_increases_min": max(base_criteria["dividend_increases_min"] - 2, 3),
             "shares_outstanding_min": base_criteria["shares_outstanding_min"] * 0.4,
-            "institutional_holders_min": max(base_criteria["institutional_holders_min"] - 2, 3),
-            "eps_increases_min": max(base_criteria["eps_increases_min"] - 2, 3),
-            "consecutive_dividend_min": max(base_criteria["consecutive_dividend_min"] - 5, 5),
+            "institutional_holders_min": max(base_criteria["institutional_holders_min"] - 30, 20),
+            "eps_increases_min": max(base_criteria["eps_increases_min"] - 2, 4),
+            "consecutive_dividend_min": max(base_criteria["consecutive_dividend_min"] - 15, 10),
             "required_status": [],
             "description": f"{base_criteria['description']} (Aggressive)"
         }
@@ -259,8 +286,9 @@ def load_sec_company_tickers():
     """Load and cache SEC company tickers mapping"""
     try:
         headers = {
-            'User-Agent': 'DividendStockAnalyzer/1.0 (contact@example.com)',
-            'Accept': 'application/json'
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/html',
+            'Accept-Language': 'en-US,en;q=0.9'
         }
         url = "https://www.sec.gov/files/company_tickers.json"
         response = requests.get(url, headers=headers, timeout=10)
@@ -297,9 +325,9 @@ def fetch_sec_edgar_eps_increases(ticker):
             return None
 
         headers = {
-            'User-Agent': 'DividendStockAnalyzer/1.0 (contact@example.com)',
-            'Accept': 'application/json',
-            'Accept-Encoding': 'gzip, deflate'
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json, text/html',
+            'Accept-Language': 'en-US,en;q=0.9'
         }
 
         time.sleep(0.2)  # Be nice to SEC servers
@@ -542,8 +570,16 @@ def fetch_stock_data(ticker):
         annual_dividend = info.get('dividendRate', 0)
         shares_outstanding = info.get('sharesOutstanding', 0) / 1_000_000
 
-        # Institutional holders
-        institutional_holders = len(stock.institutional_holders) if hasattr(stock, 'institutional_holders') and stock.institutional_holders is not None else 0
+        # Institutional holders - estimate count based on percentage (matching desktop methodology)
+        institutional_pct = info.get('heldPercentInstitutions', 0)
+        if institutional_pct > 0.5:
+            institutional_holders = 500  # Large cap with >50% institutional ownership
+        elif institutional_pct > 0.3:
+            institutional_holders = 200  # Medium institutional ownership
+        elif institutional_pct > 0.1:
+            institutional_holders = 100  # Lower institutional ownership
+        else:
+            institutional_holders = 0  # Very low institutional ownership
 
         # Dividend history
         dividends = stock.dividends
@@ -630,14 +666,32 @@ def calculate_consecutive_dividend_years(dividends):
         return 0
 
 def calculate_historical_yields(stock, current_price, annual_dividend):
-    """Calculate historical high and low yields"""
+    """Calculate historical high and low yields using actual yearly dividends and average prices"""
     try:
-        hist = stock.history(period="5y")
-        if len(hist) == 0 or annual_dividend == 0:
+        # Get 12 years of price history (matching desktop methodology)
+        hist = stock.history(period="12y")
+        dividends_df = stock.dividends
+
+        if len(hist) == 0 or len(dividends_df) == 0:
             return 0.0, 0.0
 
-        prices = hist['Close']
-        yields = [(annual_dividend / price) * 100 for price in prices if price > 0]
+        yields = []
+        current_year = datetime.now().year
+
+        # Calculate actual yield for each year using that year's dividend and average price
+        for year in range(current_year - 12, current_year + 1):
+            # Get dividends paid in this year
+            year_divs = dividends_df[dividends_df.index.year == year]
+            if len(year_divs) > 0:
+                annual_div = year_divs.sum()
+
+                # Get average price for that year
+                year_prices = hist[hist.index.year == year]['Close']
+                if len(year_prices) > 0:
+                    avg_price = year_prices.mean()
+                    if avg_price > 0:
+                        yield_pct = (annual_div / avg_price) * 100
+                        yields.append(yield_pct)
 
         if len(yields) > 0:
             return max(yields), min(yields)
